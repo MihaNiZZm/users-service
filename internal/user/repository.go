@@ -53,7 +53,7 @@ func (r *Repository) GetAll(ctx context.Context) ([]User, error) {
 	return result, nil
 }
 
-func (r *Repository) Save(ctx context.Context, u User) (User, error) {
+func (r *Repository) Save(ctx context.Context, createParams CreateParams) (User, error) {
 	if err := ctx.Err(); err != nil {
 		return User{}, err
 	}
@@ -65,8 +65,8 @@ func (r *Repository) Save(ctx context.Context, u User) (User, error) {
 
 	newUser := User{
 		ID:   id,
-		Name: u.Name,
-		Age:  u.Age,
+		Name: createParams.Name,
+		Age:  createParams.Age,
 	}
 
 	r.storage[id] = newUser

@@ -1,3 +1,4 @@
+// Package httpapi represents an API layer of users
 package httpapi
 
 import (
@@ -60,7 +61,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Create(r.Context(), userRequest.toUser())
+	user, err := h.service.Create(r.Context(), userRequest.toCreateParams())
 	if err != nil {
 		mapAndRespondError(w, err)
 		return
@@ -134,8 +135,8 @@ func mapAndRespondError(w http.ResponseWriter, err error) {
 	respondWithError(w, http.StatusInternalServerError, "internal_error", "something went wrong")
 }
 
-func (ur *UserRequest) toUser() user.User {
-	return user.User{
+func (ur *UserRequest) toCreateParams() user.CreateParams {
+	return user.CreateParams{
 		Name: ur.Name,
 		Age:  ur.Age,
 	}

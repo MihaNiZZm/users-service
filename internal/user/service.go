@@ -18,16 +18,16 @@ func NewUserService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
 
-func (s *Service) Create(ctx context.Context, u User) (User, error) {
-	if u.Age <= 0 {
+func (s *Service) Create(ctx context.Context, createParams CreateParams) (User, error) {
+	if createParams.Age <= 0 {
 		return User{}, ErrInvalidUserAge
 	}
 
-	if u.Name == "" {
+	if createParams.Name == "" {
 		return User{}, ErrEmptyUserName
 	}
 
-	return s.repository.Save(ctx, u)
+	return s.repository.Save(ctx, createParams)
 }
 
 func (s *Service) Get(ctx context.Context, id int64) (User, error) {
