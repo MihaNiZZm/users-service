@@ -18,38 +18,20 @@ func NewUserService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
 
-func (s *Service) Create(ctx context.Context, ur UserRequest) (User, error) {
-	if err := ctx.Err(); err != nil {
-		return User{}, err
-	}
-
-	if ur.Age <= 0 {
+func (s *Service) Create(ctx context.Context, u User) (User, error) {
+	if u.Age <= 0 {
 		return User{}, ErrInvalidUserAge
 	}
 
-	if ur.Name == "" {
+	if u.Name == "" {
 		return User{}, ErrEmptyUserName
 	}
 
-	user, err := s.repository.Save(ctx, ur)
-	if err != nil {
-		return User{}, err
-	}
-
-	return user, nil
+	return s.repository.Save(ctx, u)
 }
 
 func (s *Service) Get(ctx context.Context, id int64) (User, error) {
-	if err := ctx.Err(); err != nil {
-		return User{}, err
-	}
-
-	user, err := s.repository.Get(ctx, id)
-	if err != nil {
-		return User{}, err
-	}
-
-	return user, nil
+	return s.repository.Get(ctx, id)
 }
 
 func (s *Service) GetAll(ctx context.Context) ([]User, error) {

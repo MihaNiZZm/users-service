@@ -31,8 +31,8 @@ func (r *Repository) Get(ctx context.Context, id int64) (User, error) {
 	}
 
 	r.mu.RLock()
+	defer r.mu.RUnlock()
 	user, ok := r.storage[id]
-	r.mu.RUnlock()
 
 	if !ok {
 		return User{}, NewUserNotFoundError(id)
@@ -47,29 +47,29 @@ func (r *Repository) GetAll(ctx context.Context) ([]User, error) {
 	}
 
 	r.mu.RLock()
+	defer r.mu.RUnlock()
 	result := slices.Collect(maps.Values(r.storage))
-	r.mu.RUnlock()
 
 	return result, nil
 }
 
-func (r *Repository) Save(ctx context.Context, ur UserRequest) (User, error) {
+func (r *Repository) Save(ctx context.Context, u User) (User, error) {
 	if err := ctx.Err(); err != nil {
 		return User{}, err
 	}
 
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	id := int64(r.currentID)
 	r.currentID++
 
 	newUser := User{
 		ID:   id,
-		Name: ur.Name,
-		Age:  ur.Age,
+		Name: u.Name,
+		Age:  u.Age,
 	}
 
-	r.mu.Lock()
 	r.storage[id] = newUser
-	r.mu.Unlock()
 
 	return newUser, nil
 }
@@ -80,14 +80,13 @@ func (r *Repository) Delete(ctx context.Context, id int64) error {
 	}
 
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	_, ok := r.storage[id]
 	if !ok {
-		r.mu.Unlock()
 		return NewUserNotFoundError(id)
 	}
 
 	delete(r.storage, id)
-	r.mu.Unlock()
 	return nil
 }
 

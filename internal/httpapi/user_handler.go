@@ -1,11 +1,18 @@
-package user
+package httpapi
 
 import (
 	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+
+	"github.com/MihaNiZZm/users-service/internal/user"
 )
+
+type UserRequest struct {
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
 
 type AppError struct {
 	Error   string `json:"error"`
@@ -13,10 +20,10 @@ type AppError struct {
 }
 
 type UserHandler struct {
-	service *Service
+	service *user.Service
 }
 
-func NewUserHandler(service *Service) *UserHandler {
+func NewUserHandler(service *user.Service) *UserHandler {
 	return &UserHandler{service: service}
 }
 
@@ -53,7 +60,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Create(r.Context(), userRequest)
+	user, err := h.service.Create(r.Context(), userRequest.toUser())
 	if err != nil {
 		mapAndRespondError(w, err)
 		return
@@ -109,20 +116,27 @@ func respondWithError(w http.ResponseWriter, code int, errType string, message s
 }
 
 func mapAndRespondError(w http.ResponseWriter, err error) {
-	if errors.Is(err, ErrEmptyUserName) {
+	if errors.Is(err, user.ErrEmptyUserName) {
 		respondWithError(w, http.StatusBadRequest, "invalid_name", err.Error())
 		return
 	}
-	if errors.Is(err, ErrInvalidUserAge) {
+	if errors.Is(err, user.ErrInvalidUserAge) {
 		respondWithError(w, http.StatusBadRequest, "invalid_age", err.Error())
 		return
 	}
 
-	var userNotFound *ErrUserNotFound
+	var userNotFound *user.ErrUserNotFound
 	if errors.As(err, &userNotFound) {
 		respondWithError(w, http.StatusNotFound, "not_found", userNotFound.Error())
 		return
 	}
 
 	respondWithError(w, http.StatusInternalServerError, "internal_error", "something went wrong")
+}
+
+func (ur *UserRequest) toUser() user.User {
+	return user.User{
+		Name: ur.Name,
+		Age:  ur.Age,
+	}
 }

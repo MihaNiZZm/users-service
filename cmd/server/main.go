@@ -6,13 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/MihaNiZZm/users-service/internal/httpapi"
 	"github.com/MihaNiZZm/users-service/internal/user"
 )
 
 func main() {
 	repository := user.NewUserRepository()
 	service := user.NewUserService(repository)
-	handler := user.NewUserHandler(service)
+	handler := httpapi.NewUserHandler(service)
 
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
@@ -29,7 +30,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Go(func() {
 		if err := server.ListenAndServe(); err != nil {
-			fmt.Println("server error:", err.Error())
+			fmt.Println("server stopped:", err.Error())
 		}
 	})
 	fmt.Println("server is listening on http://localhost:8080")
