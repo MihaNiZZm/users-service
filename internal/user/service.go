@@ -10,11 +10,18 @@ var (
 	ErrEmptyUserName  = errors.New("name cannot be empty")
 )
 
-type Service struct {
-	repository *Repository
+type UserRepository interface {
+	Get(context.Context, int64) (User, error)
+	GetAll(context.Context) ([]User, error)
+	Save(context.Context, CreateParams) (User, error)
+	Delete(context.Context, int64) error
 }
 
-func NewUserService(repository *Repository) *Service {
+type Service struct {
+	repository UserRepository
+}
+
+func NewUserService(repository UserRepository) *Service {
 	return &Service{repository: repository}
 }
 
