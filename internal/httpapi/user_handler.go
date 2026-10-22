@@ -2,6 +2,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -20,11 +21,18 @@ type AppError struct {
 	Message string `json:"message"`
 }
 
-type UserHandler struct {
-	service *user.Service
+type UserService interface {
+	Create(context.Context, user.CreateParams) (user.User, error)
+	Get(context.Context, int64) (user.User, error)
+	GetAll(context.Context) ([]user.User, error)
+	Delete(context.Context, int64) error
 }
 
-func NewUserHandler(service *user.Service) *UserHandler {
+type UserHandler struct {
+	service UserService
+}
+
+func NewUserHandler(service UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
@@ -57,7 +65,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserRequest
 	err := json.NewDecoder(r.Body).Decode(&userRequest)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "invalid_request_body", "request body must be a json with format { name: 'string', age: 20 }")
+		respondWithError(w, http.StatusBadRequest, "invalid_request_body", `request body must be a json with format { "name": "string", "age": 20 }`)
 		return
 	}
 
